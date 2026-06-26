@@ -1,0 +1,6 @@
+{
+  "name": "Tótem de Atención Aduanera",
+  "description": "Sistema integrado de gestión de turnos para aduana con vistas de tótem de viajero, módulo de ventanilla para funcionarios, pantalla pública de llamados y panel de supervisión.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
