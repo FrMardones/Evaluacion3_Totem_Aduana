@@ -10,6 +10,8 @@ interface SupervisorViewProps {
   onResetSystem: () => void;
   onClearLogs: () => void;
   averageWaitTime: number;
+  assistanceActive: boolean;
+  onResolveAssistance: () => void;
 }
 
 export default function SupervisorView({
@@ -20,9 +22,12 @@ export default function SupervisorView({
   onResetSystem,
   onClearLogs,
   averageWaitTime,
+  assistanceActive,
+  onResolveAssistance,
 }: SupervisorViewProps) {
   const [activeTab, setActiveTab] = useState<'monitor' | 'how-it-works'>('monitor');
   const [isAutoGenerating, setIsAutoGenerating] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   // Auto-generation timer for demo purposes
   useEffect(() => {
@@ -47,6 +52,25 @@ export default function SupervisorView({
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-2 space-y-6" id="supervisor-container">
+      {/* Active Assistance Alert Banner */}
+      {assistanceActive && (
+        <div className="bg-gradient-to-r from-red-600 to-amber-600 text-white p-5 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4 animate-pulse border-2 border-red-400">
+          <div className="flex items-center gap-3">
+            <span className="bg-white text-red-600 p-2.5 rounded-full font-black text-lg">⚠️</span>
+            <div>
+              <h4 className="font-black text-sm tracking-wide uppercase">SOLICITUD DE ASISTENCIA EN TÓTEM</h4>
+              <p className="text-xs text-red-100 font-medium">Un viajero ha presionado el botón de ayuda en el Tótem de Autoatención. Se requiere asistencia presencial de inmediato.</p>
+            </div>
+          </div>
+          <button
+            onClick={onResolveAssistance}
+            className="bg-white text-red-700 hover:bg-slate-100 px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-md active:scale-95 cursor-pointer shrink-0"
+          >
+            Marcar Como Atendido
+          </button>
+        </div>
+      )}
+
       {/* Top Banner */}
       <div className="bg-[#002366] text-white p-8 rounded-2xl border-2 border-slate-200/20 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4" id="supervisor-top">
         <div>
@@ -145,14 +169,44 @@ export default function SupervisorView({
                     </label>
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 flex gap-2">
-                    <button
-                      onClick={onResetSystem}
-                      className="flex-1 py-2.5 px-3 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
-                    >
-                      <Trash2 size={13} />
-                      Reiniciar Colas
-                    </button>
+                  <div className="pt-2 border-t border-slate-100">
+                    {!showResetConfirm ? (
+                      <button
+                        onClick={() => setShowResetConfirm(true)}
+                        className="w-full py-2.5 px-3 rounded-lg border-2 border-dashed border-red-300 text-red-600 hover:bg-red-50 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+                        id="btn-trigger-reset"
+                      >
+                        <Trash2 size={13} />
+                        Reiniciar Colas
+                      </button>
+                    ) : (
+                      <div className="bg-red-50 border border-red-200 p-3 rounded-xl space-y-2 animate-fadeIn" id="reset-confirm-box">
+                        <p className="text-[10px] text-red-700 font-bold text-center leading-relaxed">
+                          ¿Confirmar reinicio de todas las colas? Los tickets y contadores volverán a su estado inicial.
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onResetSystem();
+                              setShowResetConfirm(false);
+                            }}
+                            className="flex-1 py-1.5 px-2 bg-red-600 text-white rounded-lg font-black text-[10px] uppercase tracking-wider hover:bg-red-700 transition-colors cursor-pointer"
+                            id="btn-confirm-reset"
+                          >
+                            Sí, reiniciar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowResetConfirm(false)}
+                            className="flex-1 py-1.5 px-2 bg-slate-200 text-slate-700 rounded-lg font-bold text-[10px] uppercase tracking-wider hover:bg-slate-300 transition-colors cursor-pointer"
+                            id="btn-cancel-reset"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

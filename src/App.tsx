@@ -110,6 +110,10 @@ export default function App() {
     return saved ? parseInt(saved, 10) : 2;
   });
 
+  const [assistanceActive, setAssistanceActive] = useState<boolean>(() => {
+    return localStorage.getItem('aduana_assistance') === 'true';
+  });
+
   // Save state to localStorage on modification
   useEffect(() => {
     localStorage.setItem('aduana_tickets', JSON.stringify(tickets));
@@ -130,6 +134,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('aduana_seq_pref', nextPrefNum.toString());
   }, [nextPrefNum]);
+
+  useEffect(() => {
+    localStorage.setItem('aduana_assistance', String(assistanceActive));
+  }, [assistanceActive]);
 
   // Helper to add system logs
   const addLog = (action: string, details: string) => {
@@ -283,27 +291,38 @@ export default function App() {
 
   // 6. Reset System
   const handleResetSystem = () => {
-    if (window.confirm('¿Está seguro de que desea reiniciar todas las colas de atención? Esto restablecerá los tickets iniciales.')) {
-      setTickets(INITIAL_TICKETS);
-      setCounters(INITIAL_COUNTERS);
-      setLogs(INITIAL_LOGS);
-      setNextGenNum(4);
-      setNextPrefNum(2);
-      setLastCalledTicket(null);
-      setTriggerAnnounceId(null);
-      localStorage.removeItem('aduana_tickets');
-      localStorage.removeItem('aduana_counters');
-      localStorage.removeItem('aduana_logs');
-      localStorage.removeItem('aduana_seq_gen');
-      localStorage.removeItem('aduana_seq_pref');
-      addLog('SISTEMA', 'Sistema reiniciado por completo a valores por defecto.');
-    }
+    setTickets(INITIAL_TICKETS);
+    setCounters(INITIAL_COUNTERS);
+    setLogs(INITIAL_LOGS);
+    setNextGenNum(4);
+    setNextPrefNum(2);
+    setLastCalledTicket(null);
+    setTriggerAnnounceId(null);
+    setAssistanceActive(false);
+    localStorage.removeItem('aduana_tickets');
+    localStorage.removeItem('aduana_counters');
+    localStorage.removeItem('aduana_logs');
+    localStorage.removeItem('aduana_seq_gen');
+    localStorage.removeItem('aduana_seq_pref');
+    localStorage.removeItem('aduana_assistance');
+    addLog('SISTEMA', 'Sistema de turnos reiniciado por completo por el Supervisor.');
   };
 
   // Clear Logs
   const handleClearLogs = () => {
     setLogs([]);
     localStorage.removeItem('aduana_logs');
+  };
+
+  // Assistance handlers
+  const handleCallAssistance = () => {
+    setAssistanceActive(true);
+    addLog('ALERTA', '⚠️ SE SOLICITÓ ASISTENCIA EN EL TÓTEM DE AUTOATENCIÓN');
+  };
+
+  const handleResolveAssistance = () => {
+    setAssistanceActive(false);
+    addLog('SISTEMA', 'Asistencia en Tótem marcada como resuelta por el Supervisor.');
   };
 
   // Active waiting queue calculation
@@ -412,6 +431,8 @@ export default function App() {
                 onGenerateTicket={handleGenerateTicket}
                 lastGeneratedTicket={tickets.find(t => t.status === 'waiting') || null}
                 waitingCount={waitingCount}
+                onCallAssistance={handleCallAssistance}
+                assistanceActive={assistanceActive}
               />
             )}
 
@@ -445,6 +466,8 @@ export default function App() {
                 onResetSystem={handleResetSystem}
                 onClearLogs={handleClearLogs}
                 averageWaitTime={averageWaitTime}
+                assistanceActive={assistanceActive}
+                onResolveAssistance={handleResolveAssistance}
               />
             )}
           </motion.div>
